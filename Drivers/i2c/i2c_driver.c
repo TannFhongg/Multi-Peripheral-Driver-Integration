@@ -1,4 +1,4 @@
-// i2c_driver.c - Simple I2C Master Driver (Register-Level, Polling Mode)
+
 
 #include "i2c_driver.h"
 
