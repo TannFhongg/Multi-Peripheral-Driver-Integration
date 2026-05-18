@@ -1,11 +1,11 @@
-// dma_driver.h - DMA Driver for Memory-to-Peripheral Transfer
+
 
 #ifndef DMA_DRIVER_H
 #define DMA_DRIVER_H
 
 #include <stdint.h>
 
-// DMA transfer complete callback type
+// DMA callback 
 typedef void (*dma_callback_t)(void);
 
 // Public API

@@ -1,5 +1,4 @@
-// uart_driver.c - UART Driver with Interrupt-Driven RX
-// Fixed: Added proper error handling and improved TX
+
 
 #include "uart_driver.h"
 #include "../Utils/ring_buffer.h"
@@ -39,15 +38,14 @@ static volatile uint32_t uart_noise_error_count = 0;
 
 void uart_init(uint32_t baudrate)
 {
-    // Initialize RX ring buffer
+    //  RX ring buffer
     ring_buffer_init(&rx_buffer, rx_storage, RX_BUFFER_SIZE);
     
-    // Disable UART before configuration
+    // Disable UART 
     USART_CR1 &= ~CR1_UE;
     
-    // Configure baudrate with fractional precision
     // BRR = (USARTDIV × 16) where USARTDIV = fCLK / (16 × baudrate)
-    // Using fractional calculation for better accuracy
+    
     uint32_t usartdiv = (APB2_CLOCK_HZ * 25) / (4 * baudrate);
     uint32_t mantissa = usartdiv / 100;
     uint32_t fraction = ((usartdiv - (mantissa * 100)) * 16 + 50) / 100;
@@ -55,8 +53,6 @@ void uart_init(uint32_t baudrate)
     
     // Enable UART, transmitter, receiver, and RX interrupt
     USART_CR1 = CR1_UE | CR1_TE | CR1_RE | CR1_RXNEIE;
-    
-    // Note: NVIC configuration is done in system_init.c
 }
 
 void uart_send(const uint8_t *data, uint16_t len)
@@ -64,7 +60,7 @@ void uart_send(const uint8_t *data, uint16_t len)
     uint16_t i;
     
     for (i = 0; i < len; i++) {
-        // Wait until TX register is empty
+        // Wait until TX register empty
         while (!(USART_SR & SR_TXE));
         
         // Write byte to data register
@@ -102,24 +98,24 @@ void USART1_IRQHandler(void)
     }
     
     if (sr & SR_FE) {
-        // Framing error - invalid stop bit
+       
         uart_framing_error_count++;
         (void)USART_DR;  // Clear by reading DR
     }
     
     if (sr & SR_NE) {
-        // Noise error - noise detected
+       
         uart_noise_error_count++;
         (void)USART_DR;  // Clear by reading DR
     }
     
     // Check if RX interrupt occurred
     if (sr & SR_RXNE) {
-        // Read byte from data register (clears RXNE flag)
+       // (clears RXNE flag
         uint8_t received_byte = (uint8_t)(USART_DR & 0xFF);
         
         // Store byte in ring buffer
-        // If buffer is full, data will be lost (ring_buffer_put returns 0)
+
         ring_buffer_put(&rx_buffer, received_byte);
     }
 }

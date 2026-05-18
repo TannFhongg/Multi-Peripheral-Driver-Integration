@@ -1,10 +1,6 @@
-// system_init.c - System-Level Initialization Implementation
+
 
 #include "system_init.h"
-
-// ============================================================================
-// RCC (Reset and Clock Control) Register Definitions
-// ============================================================================
 
 #define RCC_BASE            0x40023800UL
 
@@ -12,21 +8,20 @@
 #define RCC_APB1ENR         (*(volatile uint32_t *)(RCC_BASE + 0x40))
 #define RCC_APB2ENR         (*(volatile uint32_t *)(RCC_BASE + 0x44))
 
-// AHB1 Peripheral Clock Enable bits
-#define RCC_AHB1ENR_GPIOAEN (1 << 0)    // GPIOA clock enable
-#define RCC_AHB1ENR_GPIOBEN (1 << 1)    // GPIOB clock enable
-#define RCC_AHB1ENR_DMA1EN  (1 << 21)   // DMA1 clock enable
+// AHB1 Peripheral
+#define RCC_AHB1ENR_GPIOAEN (1 << 0)    // GPIOA clock 
+#define RCC_AHB1ENR_GPIOBEN (1 << 1)    // GPIOB clock 
+#define RCC_AHB1ENR_DMA1EN  (1 << 21)   // DMA1 clock 
 
-// APB1 Peripheral Clock Enable bits
-#define RCC_APB1ENR_I2C1EN  (1 << 21)   // I2C1 clock enable
+// APB1 Peripheral 
+#define RCC_APB1ENR_I2C1EN  (1 << 21)   // I2C1 
 
-// APB2 Peripheral Clock Enable bits
-#define RCC_APB2ENR_USART1EN (1 << 4)   // USART1 clock enable
-#define RCC_APB2ENR_SPI1EN   (1 << 12)  // SPI1 clock enable
+// APB2 Peripheral 
+#define RCC_APB2ENR_USART1EN (1 << 4)   // USART1 clock 
+#define RCC_APB2ENR_SPI1EN   (1 << 12)  // SPI1 clock 
 
-// ============================================================================
-// GPIO Register Definitions
-// ============================================================================
+
+// GPIO Regist
 
 #define GPIOA_BASE          0x40020000UL
 #define GPIOB_BASE          0x40020400UL
@@ -44,9 +39,8 @@
 #define GPIOB_PUPDR         (*(volatile uint32_t *)(GPIOB_BASE + 0x0C))
 #define GPIOB_AFRL          (*(volatile uint32_t *)(GPIOB_BASE + 0x20))
 
-// ============================================================================
-// NVIC Register Definitions
-// ============================================================================
+
+// NVIC Register
 
 #define NVIC_BASE           0xE000E100UL
 
@@ -61,9 +55,9 @@
 #define DMA1_Channel3_IRQn  13
 #define USART1_IRQn         37
 
-// ============================================================================
-// System Clock Initialization
-// ============================================================================
+
+// System Clock 
+
 
 void system_clock_init(void)
 {
@@ -88,11 +82,10 @@ void system_clock_init(void)
 
 void system_gpio_init(void)
 {
-    // ========================================================================
-    // USART1 Configuration: PA9=TX, PA10=RX
-    // ========================================================================
+    // USART1, PA9=TX, PA10=RX
+   
     
-    // Configure PA9 and PA10 as alternate function mode
+    //  PA9 and PA10 as alternate function mode
     GPIOA_MODER &= ~((3 << 18) | (3 << 20));  // Clear mode bits
     GPIOA_MODER |= (2 << 18) | (2 << 20);     // Set alternate function mode
     
@@ -106,9 +99,8 @@ void system_gpio_init(void)
     GPIOA_AFRH &= ~((0xF << 4) | (0xF << 8)); // Clear AF bits
     GPIOA_AFRH |= (7 << 4) | (7 << 8);        // AF7 = USART1
     
-    // ========================================================================
-    // SPI1 Configuration: PA5=SCK, PA7=MOSI
-    // ========================================================================
+    
+    // SPI1 : PA5=SCK, PA7=MOSI
     
     // Configure PA5 and PA7 as alternate function mode
     GPIOA_MODER &= ~((3 << 10) | (3 << 14));  // Clear mode bits
@@ -124,15 +116,15 @@ void system_gpio_init(void)
     GPIOA_AFRL &= ~((0xF << 20) | (0xF << 28)); // Clear AF bits
     GPIOA_AFRL |= (5 << 20) | (5 << 28);        // AF5 = SPI1
     
-    // ========================================================================
-    // I2C1 Configuration: PB6=SCL, PB7=SDA
-    // ========================================================================
+   
+    // I2C1 : PB6=SCL, PB7=SDA
+    
     
     // Configure PB6 and PB7 as alternate function mode
     GPIOB_MODER &= ~((3 << 12) | (3 << 14));  // Clear mode bits
     GPIOB_MODER |= (2 << 12) | (2 << 14);     // Set alternate function mode
     
-    // Set output type to open-drain (required for I2C)
+    // Set output type to open-drain 
     GPIOB_OTYPER |= (1 << 6) | (1 << 7);
     
     // Set high speed
@@ -147,29 +139,20 @@ void system_gpio_init(void)
     GPIOB_AFRL |= (4 << 24) | (4 << 28);        // AF4 = I2C1
 }
 
-// ============================================================================
-// NVIC Initialization
-// ============================================================================
 
 void system_nvic_init(void)
 {
-    // ========================================================================
-    // Configure Interrupt Priorities
-    // ========================================================================
-    // Lower number = higher priority
-    // Priority levels: 0 (highest) to 15 (lowest)
+   
+    // Configure Interrupt 
     
-    // USART1: Priority 2 (high priority for low-latency communication)
+    // USART1: Priority 2 
     NVIC_IPR(USART1_IRQn / 4) &= ~(0xFF << ((USART1_IRQn % 4) * 8));
     NVIC_IPR(USART1_IRQn / 4) |= (2 << ((USART1_IRQn % 4) * 8 + 4));
     
-    // DMA1 Channel 3: Priority 3 (lower than UART)
+    // DMA1 Channel 3: Priority 3
     NVIC_IPR(DMA1_Channel3_IRQn / 4) &= ~(0xFF << ((DMA1_Channel3_IRQn % 4) * 8));
     NVIC_IPR(DMA1_Channel3_IRQn / 4) |= (3 << ((DMA1_Channel3_IRQn % 4) * 8 + 4));
     
-    // ========================================================================
-    // Enable Interrupts
-    // ========================================================================
     
     // Enable USART1 interrupt
     NVIC_ISER1 |= (1 << (USART1_IRQn - 32));
@@ -178,19 +161,15 @@ void system_nvic_init(void)
     NVIC_ISER0 |= (1 << DMA1_Channel3_IRQn);
 }
 
-// ============================================================================
-// Complete System Initialization
-// ============================================================================
-
 void system_init_all(void)
 {
-    // Initialize in correct order:
-    // 1. Enable clocks first
+   
+    // Enable clocks 
     system_clock_init();
     
-    // 2. Configure GPIO pins
+    // Configure GPIO pins
     system_gpio_init();
     
-    // 3. Configure NVIC last
+    // configure NVIC 
     system_nvic_init();
 }

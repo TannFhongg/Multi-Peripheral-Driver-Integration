@@ -1,8 +1,5 @@
-// dma_driver.c - DMA Driver Implementation (Memory-to-Peripheral)
-// Fixed: Added transfer error handling
 
 #include "dma_driver.h"
-
 
 #define DMA1_BASE           0x40020000UL
 #define DMA1_CH3_BASE       (DMA1_BASE + 0x30)
@@ -74,7 +71,7 @@ void dma_start_tx(uint8_t *data, uint16_t len)
     // Clear any pending transfer complete flag
     DMA_IFCR = IFCR_CTCIF3;
     
-    // Enable DMA channel - transfer starts immediately
+    // Enable DMA channel starts immediately
     DMA_CCR |= CCR_EN;
 }
 
@@ -89,7 +86,7 @@ void DMA1_Channel3_IRQHandler(void)
     
     // Check for transfer error
     if (isr & ISR_TEIF3) {
-        // Transfer error occurred (bus error, address error, etc.)
+        // Transfer error occurred
         dma_error_count++;
         
         // Clear error flag
@@ -97,20 +94,18 @@ void DMA1_Channel3_IRQHandler(void)
         
         // Disable DMA channel
         DMA_CCR &= ~CCR_EN;
-        
-        // Note: User callback is NOT called on error
-        // Application should check dma_get_error_count()
+    
     }
     
-    // Check if transfer complete interrupt occurred
+    // Check if transfer complete interrupt 
     if (isr & ISR_TCIF3) {
         // Clear interrupt flag
         DMA_IFCR = IFCR_CTCIF3;
         
-        // Disable DMA channel (one-shot transfer)
+        // Disable DMA channel
         DMA_CCR &= ~CCR_EN;
         
-        // Call user callback to notify transfer complete
+        // Call callback  notify transfer complete
         if (transfer_complete_callback != NULL) {
             transfer_complete_callback();
         }

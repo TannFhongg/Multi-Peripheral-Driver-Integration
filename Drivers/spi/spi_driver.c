@@ -1,5 +1,4 @@
-// spi_driver.c - SPI Master Driver with DMA (Transmit-Only)
-// Fixed: Removed busy-wait from ISR, added proper completion handling
+
 
 #include "spi_driver.h"
 #include "../dma/dma_driver.h"
@@ -89,12 +88,11 @@ uint8_t spi_is_busy(void)
 
 static void spi_dma_complete_handler(void)
 {
-    // DMA transfer complete - set flag for polling
-    // Do NOT busy-wait in ISR!
+    // DMA transfer complete set flag for polling
     dma_transfer_complete = 1;
     
-    // User must poll spi_is_busy() to ensure SPI BSY cleared
-    // Then call user callback from application context
+    //  poll spi_is_busy() to ensure SPI BSY clear
+   
     if (user_callback != NULL) {
         user_callback();
     }
