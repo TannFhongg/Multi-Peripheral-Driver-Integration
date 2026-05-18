@@ -1,4 +1,5 @@
 // dma_driver.c - DMA Driver Implementation (Memory-to-Peripheral)
+// Fixed: Added transfer error handling
 
 #include "dma_driver.h"
 
@@ -16,6 +17,8 @@
 // DMA Channel Configuration Register bits
 #define CCR_EN              (1 << 0)    // Channel Enable
 #define CCR_TCIE            (1 << 1)    // Transfer Complete Interrupt Enable
+#define CCR_HTIE            (1 << 2)    // Half Transfer Interrupt Enable
+#define CCR_TEIE            (1 << 3)    // Transfer Error Interrupt Enable
 #define CCR_DIR             (1 << 4)    // Data Transfer Direction: 1=Read from memory
 #define CCR_MINC            (1 << 7)    // Memory Increment Mode
 #define CCR_PSIZE_8         (0 << 8)    // Peripheral Size: 8-bit
@@ -23,12 +26,17 @@
 
 // DMA Interrupt Status Register bits (for Channel 3)
 #define ISR_TCIF3           (1 << 9)    // Transfer Complete Flag
+#define ISR_HTIF3           (1 << 10)   // Half Transfer Flag
+#define ISR_TEIF3           (1 << 11)   // Transfer Error Flag
 
 // DMA Interrupt Flag Clear Register bits
 #define IFCR_CTCIF3         (1 << 9)    // Clear Transfer Complete Flag
+#define IFCR_CHTIF3         (1 << 10)   // Clear Half Transfer Flag
+#define IFCR_CTEIF3         (1 << 11)   // Clear Transfer Error Flag
 
 
 static dma_callback_t transfer_complete_callback = NULL;
+static volatile uint32_t dma_error_count = 0;
 
 void dma_init(uint32_t peripheral_addr, dma_callback_t callback)
 {
@@ -46,8 +54,10 @@ void dma_init(uint32_t peripheral_addr, dma_callback_t callback)
     // - Peripheral no increment (always write to SPI_DR)
     // - 8-bit data size
     // - Transfer complete interrupt enabled
-    DMA_CCR = CCR_DIR | CCR_MINC | CCR_PSIZE_8 | CCR_MSIZE_8 | CCR_TCIE;
- 
+    // - Transfer error interrupt enabled
+    DMA_CCR = CCR_DIR | CCR_MINC | CCR_PSIZE_8 | CCR_MSIZE_8 | CCR_TCIE | CCR_TEIE;
+    
+    // Note: NVIC configuration is done in system_init.c
 }
 
 void dma_start_tx(uint8_t *data, uint16_t len)
@@ -75,8 +85,25 @@ uint8_t dma_is_busy(void)
 
 void DMA1_Channel3_IRQHandler(void)
 {
+    uint32_t isr = DMA_ISR;  // Read interrupt status
+    
+    // Check for transfer error
+    if (isr & ISR_TEIF3) {
+        // Transfer error occurred (bus error, address error, etc.)
+        dma_error_count++;
+        
+        // Clear error flag
+        DMA_IFCR = IFCR_CTEIF3;
+        
+        // Disable DMA channel
+        DMA_CCR &= ~CCR_EN;
+        
+        // Note: User callback is NOT called on error
+        // Application should check dma_get_error_count()
+    }
+    
     // Check if transfer complete interrupt occurred
-    if (DMA_ISR & ISR_TCIF3) {
+    if (isr & ISR_TCIF3) {
         // Clear interrupt flag
         DMA_IFCR = IFCR_CTCIF3;
         
@@ -88,4 +115,9 @@ void DMA1_Channel3_IRQHandler(void)
             transfer_complete_callback();
         }
     }
+}
+
+uint32_t dma_get_error_count(void)
+{
+    return dma_error_count;
 }

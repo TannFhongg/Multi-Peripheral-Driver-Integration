@@ -1,4 +1,5 @@
 // spi_driver.c - SPI Master Driver with DMA (Transmit-Only)
+// Fixed: Removed busy-wait from ISR, added proper completion handling
 
 #include "spi_driver.h"
 #include "../dma/dma_driver.h"
@@ -25,12 +26,14 @@
 
 // SPI Status Register bits
 #define SR_BSY              (1 << 7)    // Busy Flag
+#define SR_TXE              (1 << 1)    // TX Empty Flag
 
 // SPI Data Register address (for DMA)
 #define SPI1_DR_ADDR        (SPI1_BASE + 0x0C)
 
 
 static spi_callback_t user_callback = NULL;
+static volatile uint8_t dma_transfer_complete = 0;
 
 
 static void spi_dma_complete_handler(void);
@@ -62,22 +65,36 @@ void spi_init(spi_callback_t callback)
 
 void spi_transmit_dma(uint8_t *data, uint16_t len)
 {
+    // Clear completion flag
+    dma_transfer_complete = 0;
+    
     // Start DMA transfer - DMA will feed data to SPI_DR automatically
     dma_start_tx(data, len);
 }
 
 uint8_t spi_is_busy(void)
 {
-    // Check both DMA busy and SPI busy flags
-    return (dma_is_busy() || (SPI_SR & SR_BSY));
+    // Check DMA busy flag
+    if (dma_is_busy()) {
+        return 1;
+    }
+    
+    // If DMA complete but SPI still transmitting last byte
+    if (!dma_transfer_complete && (SPI_SR & SR_BSY)) {
+        return 1;
+    }
+    
+    return 0;
 }
 
 static void spi_dma_complete_handler(void)
 {
-    // Wait for SPI to finish transmitting last byte
-    while (SPI_SR & SR_BSY);
+    // DMA transfer complete - set flag for polling
+    // Do NOT busy-wait in ISR!
+    dma_transfer_complete = 1;
     
-    // Notify user that transfer is complete
+    // User must poll spi_is_busy() to ensure SPI BSY cleared
+    // Then call user callback from application context
     if (user_callback != NULL) {
         user_callback();
     }

@@ -7,11 +7,10 @@
 
 
 typedef struct {
-    uint8_t *buffer;    // Pointer to storage array
-    uint16_t size;      // Total buffer size
-    uint16_t head;      // Write position (updated by ISR)
-    uint16_t tail;      // Read position (updated by application)
-    uint16_t count;     // Number of bytes in buffer
+    uint8_t *buffer;         // Pointer to storage array
+    uint16_t size;           // Total buffer size
+    volatile uint16_t head;  // Write position (updated by ISR only)
+    volatile uint16_t tail;  // Read position (updated by application only)
 } ring_buffer_t;
 
 // Public API
