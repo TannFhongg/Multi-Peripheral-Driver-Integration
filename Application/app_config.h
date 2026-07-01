@@ -1,0 +1,15 @@
+#ifndef APPLICATION_APP_CONFIG_H
+#define APPLICATION_APP_CONFIG_H
+
+#include <stdint.h>
+
+#define APP_UART_BAUDRATE           115200UL
+#define APP_HEARTBEAT_DIVIDER       200000UL
+#define APP_BUTTON_DEBOUNCE_LOOPS   20000UL
+
+#define APP_I2C_SAMPLE_ADDR         0x68U
+#define APP_I2C_SAMPLE_LENGTH       2U
+
+#define APP_SPI_TX_LENGTH           8U
+
+#endif
