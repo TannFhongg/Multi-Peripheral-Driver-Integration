@@ -89,31 +89,32 @@ void uart_clear_rx(void)
 void USART1_IRQHandler(void)
 {
     uint32_t sr = USART_SR;  // Read status register
+    uint8_t received_byte = 0;
+    uint8_t has_data = 0;
     
+    if (sr & (SR_RXNE | SR_ORE | SR_FE | SR_NE)) {
+        received_byte = (uint8_t)(USART_DR & 0xFF);
+        has_data = (sr & SR_RXNE) ? 1 : 0;
+    }
+
     // Check for errors first
     if (sr & SR_ORE) {
         // Overrun error - data lost
         uart_overrun_count++;
-        (void)USART_DR;  // Clear by reading DR
     }
     
     if (sr & SR_FE) {
        
         uart_framing_error_count++;
-        (void)USART_DR;  // Clear by reading DR
     }
     
     if (sr & SR_NE) {
        
         uart_noise_error_count++;
-        (void)USART_DR;  // Clear by reading DR
     }
     
     // Check if RX interrupt occurred
-    if (sr & SR_RXNE) {
-       // (clears RXNE flag
-        uint8_t received_byte = (uint8_t)(USART_DR & 0xFF);
-        
+    if (has_data) {
         // Store byte in ring buffer
 
         ring_buffer_put(&rx_buffer, received_byte);

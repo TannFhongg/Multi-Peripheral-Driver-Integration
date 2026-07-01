@@ -1,6 +1,8 @@
 
 #include "dma_driver.h"
 
+#include <stddef.h>
+
 // DMA2 Stream3 Channel 3 is mapp SPI1_TX
 
 #define DMA2_BASE           0x40026400UL
@@ -55,6 +57,7 @@
 
 
 static dma_callback_t transfer_complete_callback = NULL;
+static dma_callback_t transfer_error_callback = NULL;
 static volatile uint32_t dma_error_count = 0;
 
 
@@ -63,6 +66,7 @@ static volatile uint32_t dma_error_count = 0;
 void dma_init(uint32_t peripheral_addr, dma_callback_t callback)
 {
     transfer_complete_callback = callback;
+    transfer_error_callback = NULL;
     
     // 1. Disable DMA stream before configuration
     DMA_S3CR &= ~CR_EN;
@@ -92,9 +96,15 @@ void dma_init(uint32_t peripheral_addr, dma_callback_t callback)
                CR_MSIZE_8BIT       |  // Memory size: 8-bit
                CR_PL_HIGH          |  // Priority: High
                CR_TCIE             |  // Transfer Complete Interrupt Enable
+               CR_DMEIE            |  // Direct Mode Error Interrupt Enable
                CR_TEIE;               // Transfer Error Interrupt Enable
     
     // Note: NVIC configuration for DMA2_Stream3_IRQn is done in system_init.c
+}
+
+void dma_set_error_callback(dma_callback_t callback)
+{
+    transfer_error_callback = callback;
 }
 
 // Start DMA Transfer
@@ -127,6 +137,14 @@ uint8_t dma_is_busy(void)
     return (DMA_S3CR & CR_EN) ? 1 : 0;
 }
 
+static void notify_dma_error(void)
+{
+    if (transfer_error_callback != NULL) {
+        transfer_error_callback();
+    } else if (transfer_complete_callback != NULL) {
+        transfer_complete_callback();
+    }
+}
 
 // DMA2 Stream 3 Interrupt Handler (STM32F4)
 
@@ -134,29 +152,31 @@ uint8_t dma_is_busy(void)
 void DMA2_Stream3_IRQHandler(void)
 {
     uint32_t lisr = DMA2_LISR;  // Read Low Interrupt Status Register
+    uint32_t error_clear_flags = 0;
     
     // Check for transfer error
     if (lisr & LISR_TEIF3) {
         // Transfer error occurred
         dma_error_count++;
-        
-        // Clear error flag
-        DMA2_LIFCR = LIFCR_CTEIF3;
-        
-        // Disable DMA stream
-        DMA_S3CR &= ~CR_EN;
+        error_clear_flags |= LIFCR_CTEIF3;
     }
     
     // Check for direct mode error
     if (lisr & LISR_DMEIF3) {
         // Direct mode error occurred
         dma_error_count++;
-        
-        // Clear error flag
-        DMA2_LIFCR = LIFCR_CDMEIF3;
-        
+        error_clear_flags |= LIFCR_CDMEIF3;
+    }
+
+    if (error_clear_flags != 0) {
+        // Clear error flags
+        DMA2_LIFCR = error_clear_flags;
+
         // Disable DMA stream
         DMA_S3CR &= ~CR_EN;
+
+        notify_dma_error();
+        return;
     }
     
     // Check if transfer complete interrupt

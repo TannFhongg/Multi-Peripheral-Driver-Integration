@@ -49,7 +49,7 @@
 #define NVIC_ISER2          (*(volatile uint32_t *)(NVIC_BASE + 0x008))
 
 #define NVIC_IPR_BASE       0xE000E400UL
-#define NVIC_IPR(n)         (*(volatile uint32_t *)(NVIC_IPR_BASE + (n)))
+#define NVIC_IPR(n)         (*(volatile uint32_t *)(NVIC_IPR_BASE + (4UL * (n))))
 
 // IRQ Numbers for STM32F4
 
@@ -141,12 +141,12 @@ void system_nvic_init(void)
     // Configure Interrupt Priorities
     
     // USART1: Priority 2 
-    NVIC_IPR(USART1_IRQn / 4) &= ~(0xFF << ((USART1_IRQn % 4) * 8));
-    NVIC_IPR(USART1_IRQn / 4) |= (2 << ((USART1_IRQn % 4) * 8 + 4));
+    NVIC_IPR(USART1_IRQn / 4) &= ~(0xFFUL << ((USART1_IRQn % 4) * 8));
+    NVIC_IPR(USART1_IRQn / 4) |= (2UL << ((USART1_IRQn % 4) * 8 + 4));
     
     // DMA2 Stream 3: Priority 3 (for SPI1_TX)
-    NVIC_IPR(DMA2_Stream3_IRQn / 4) &= ~(0xFF << ((DMA2_Stream3_IRQn % 4) * 8));
-    NVIC_IPR(DMA2_Stream3_IRQn / 4) |= (3 << ((DMA2_Stream3_IRQn % 4) * 8 + 4));
+    NVIC_IPR(DMA2_Stream3_IRQn / 4) &= ~(0xFFUL << ((DMA2_Stream3_IRQn % 4) * 8));
+    NVIC_IPR(DMA2_Stream3_IRQn / 4) |= (3UL << ((DMA2_Stream3_IRQn % 4) * 8 + 4));
     
     // Enable USART1 interrupt (IRQ 37 is in ISER1)
     NVIC_ISER1 |= (1 << (USART1_IRQn - 32));

@@ -3,6 +3,8 @@
 #include "spi_driver.h"
 #include "../dma/dma_driver.h"
 
+#include <stddef.h>
+
 #define SPI1_BASE           0x40013000UL
 
 #define SPI_CR1             (*(volatile uint32_t *)(SPI1_BASE + 0x00))
@@ -36,6 +38,7 @@ static volatile uint8_t dma_transfer_complete = 0;
 
 
 static void spi_dma_complete_handler(void);
+static void spi_dma_error_handler(void);
 
 void spi_init(spi_callback_t callback)
 {
@@ -57,6 +60,7 @@ void spi_init(spi_callback_t callback)
     
     // Initialize DMA for SPI TX
     dma_init(SPI1_DR_ADDR, spi_dma_complete_handler);
+    dma_set_error_callback(spi_dma_error_handler);
     
     // Enable SPI peripheral
     SPI_CR1 |= CR1_SPE;
@@ -79,7 +83,7 @@ uint8_t spi_is_busy(void)
     }
     
     // If DMA complete but SPI still transmitting last byte
-    if (!dma_transfer_complete && (SPI_SR & SR_BSY)) {
+    if (dma_transfer_complete && (SPI_SR & SR_BSY)) {
         return 1;
     }
     
@@ -93,6 +97,15 @@ static void spi_dma_complete_handler(void)
     
     //  poll spi_is_busy() to ensure SPI BSY clear
    
+    if (user_callback != NULL) {
+        user_callback();
+    }
+}
+
+static void spi_dma_error_handler(void)
+{
+    dma_transfer_complete = 1;
+
     if (user_callback != NULL) {
         user_callback();
     }
