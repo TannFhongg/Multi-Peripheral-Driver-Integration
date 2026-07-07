@@ -1,0 +1,172 @@
+# Compiled Object files
+*.o
+*.obj
+*.elf
+*.bin
+*.hex
+*.map
+*.lst
+# Linker output
+*.ilk
+*.exp
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Libraries
+*.lib
+*.a
+*.la
+*.lo
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+*.claude/
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# Build directories
+build/
+Build/
+BUILD/
+Debug/
+Release/
+bin/
+obj/
+.vscode/
+# IDE specific files
+# Keil MDK-ARM
+*.uvopt
+*.uvoptx
+*.uvproj
+*.uvprojx
+*.bak
+*.dep
+*.d
+*.crf
+*.htm
+*.lnp
+*.sct
+*.axf
+JLinkLog.txt
+JLinkSettings.ini
+DebugConfig/
+RTE/
+Listings/
+Objects/
+
+# IAR EWARM
+*.eww
+*.ewd
+*.ewp
+*.dep
+*.dni
+*.wsdt
+*.dbgdt
+*.wspos
+settings/
+Debug/
+Release/
+
+# Eclipse / STM32CubeIDE
+.metadata/
+.settings/
+.project
+.cproject
+.launches/
+*.launch
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+*.bak
+*.old
+
+# Documentation build
+docs/_build/
+html/
+latex/
+
+# Python (if using scripts)
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+.Python
+venv/
+env/
+
+# Tags
+tags
+TAGS
+.tags
+.TAGS
+
+# Ctags
+.ctags
+
+# Cscope
+cscope.out
+cscope.in.out
+cscope.po.out
+cscope.files
+
+# Core dumps
+core
+core.*
+
+# Backup files
+*~
+*.orig
+*.rej
+
+# Local helper notes
+CLAUDE.md
+HUONG_DAN_CHAY_DU_AN.txt
