@@ -1,12 +1,12 @@
-# STM32F4 Multi-Peripheral Firmware Platform for a Mini Car Prototype
+# STM32F4 Multi-Peripheral Firmware
 
-This repository contains bare-metal STM32F4 firmware organized as a small embedded platform for integrating the peripherals that are commonly needed in a robotics or autonomous mini car prototype. The current codebase focuses on board bring-up and peripheral coordination rather than autonomy algorithms: direct-register clock/GPIO/NVIC initialization, a UART command shell, I2C sampling, SPI transmit via DMA, and simple runtime diagnostics using onboard LEDs and a user button.
+This repository contains bare-metal STM32F4 firmware organized as a small embedded platform for integrating the peripherals. The current codebase focuses on board bring-up and peripheral coordination rather than autonomy algorithms: direct-register clock/GPIO/NVIC initialization, a UART command shell, I2C sampling, SPI transmit via DMA, and simple runtime diagnostics using onboard LEDs and a user button.
 
 The implementation targets the `STM32F4DISCOVERY / STM32F407G-DISC1` with an `STM32F407VGT6`. It does not use STM32 HAL, LL, or an RTOS; the drivers access peripheral registers directly.
 
 ## Why This Project Exists
 
-For a mini car or robotics controller, the first practical milestone is often not path planning or control theory. It is reliable low-level integration: clocks, GPIO alternate functions, interrupt setup, serial diagnostics, sensor bus access, and efficient peripheral data movement. This repository demonstrates that integration layer in a compact and reviewable form.
+It is reliable low-level integration: clocks, GPIO alternate functions, interrupt setup, serial diagnostics, sensor bus access, and efficient peripheral data movement. This repository demonstrates that integration layer in a compact and reviewable form.
 
 What is currently in scope:
 
@@ -249,7 +249,6 @@ This project is a good portfolio example for showing practical embedded firmware
 
 ## Future Improvements
 
-- Add a complete buildable project baseline with startup code, linker script, and reproducible build instructions.
 - Extend SPI with chip-select handling and optional receive/full-duplex support.
 - Harden the I2C driver for real hardware bring-up with explicit error-flag handling and recovery.
 - Surface UART diagnostics such as overflow and framing-error counters through a public API.
@@ -258,6 +257,6 @@ This project is a good portfolio example for showing practical embedded firmware
 
 ## Portfolio Summary
 
-This repository is best presented as a prototype-level STM32F4 firmware integration platform for an embedded mini car or robotics controller. It shows credible low-level engineering work: board support, peripheral drivers, interrupts, DMA, and layered firmware structure. It should not be presented as a complete autonomous car stack.
+This repository is best presented as a prototype-level STM32F4 firmware integration platform for an embedded . It shows credible low-level engineering work: board support, peripheral drivers, interrupts, DMA, and layered firmware structure. It should not be presented as a complete autonomous car stack.
 
 For CV wording, interview talking points, GitHub description ideas, and topic suggestions, see [docs/PORTFOLIO_NOTES.md](docs/PORTFOLIO_NOTES.md).
